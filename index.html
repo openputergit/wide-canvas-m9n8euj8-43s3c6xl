@@ -1,0 +1,1479 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ed Quiz - Interactive Learning Platform</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        .clay-effect {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 20px;
+            box-shadow: 
+                8px 8px 16px rgba(0, 0, 0, 0.1),
+                -8px -8px 16px rgba(255, 255, 255, 0.7);
+            padding: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.7);
+            transition: all 0.3s ease;
+        }
+        
+        .clay-button {
+            background: #e0e5ec;
+            border-radius: 12px;
+            box-shadow: 
+                6px 6px 14px rgba(0, 0, 0, 0.1),
+                -6px -6px 14px rgba(255, 255, 255, 0.8);
+            transition: all 0.2s ease;
+            border: 2px solid rgba(255, 255, 255, 0.7);
+        }
+        
+        .clay-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 
+                8px 8px 18px rgba(0, 0, 0, 0.12),
+                -8px -8px 18px rgba(255, 255, 255, 0.8);
+        }
+        
+        .clay-button:active {
+            transform: translateY(0);
+            box-shadow: 
+                inset 4px 4px 8px rgba(0, 0, 0, 0.1),
+                inset -4px -4px 8px rgba(255, 255, 255, 0.7);
+        }
+        
+        body {
+            background: #e0e5ec;
+            font-family: 'Poppins', sans-serif;
+            overflow-x: hidden;
+        }
+        
+        .loader {
+            border: 4px solid rgba(255, 255, 255, 0.7);
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .correct-answer {
+            background-color: rgba(34, 197, 94, 0.2);
+            border-color: #22c55e;
+        }
+        
+        .wrong-answer {
+            background-color: rgba(239, 68, 68, 0.2);
+            border-color: #ef4444;
+        }
+        
+        .progress-bar {
+            height: 8px;
+            border-radius: 4px;
+            background: linear-gradient(to right, #3b82f6, #8b5cf6);
+        }
+        
+        .confetti {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background-color: #f00;
+            border-radius: 50%;
+            animation: fall 3s ease-out;
+        }
+        
+        @keyframes fall {
+            0% {
+                transform: translateY(-100vh) rotate(0deg);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(100vh) rotate(360deg);
+                opacity: 0;
+            }
+        }
+        
+        @keyframes float-up {
+            0% {
+                transform: translateY(0);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+        }
+        
+        .nav-icon {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-size: 0.8rem;
+            color: #64748b;
+            transition: all 0.2s ease;
+        }
+        
+        .nav-icon i {
+            font-size: 1.5rem;
+            margin-bottom: 4px;
+        }
+        
+        .nav-icon.active {
+            color: #3b82f6;
+        }
+        
+        .form-input {
+            background: #f1f5f9;
+            border-radius: 10px;
+            padding: 12px 16px;
+            width: 100%;
+            border: 2px solid rgba(255, 255, 255, 0.7);
+            box-shadow: inset 2px 2px 5px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+        }
+        
+        .form-input:focus {
+            outline: none;
+            box-shadow: inset 3px 3px 6px rgba(0, 0, 0, 0.1);
+            border-color: rgba(59, 130, 246, 0.5);
+        }
+    </style>
+</head>
+<body class="min-h-screen">
+    <!-- Login Page -->
+    <div id="loginPage" class="flex items-center justify-center min-h-screen p-4">
+        <div class="clay-effect p-8 w-full max-w-md">
+            <div class="flex justify-center mb-8">
+                <div class="clay-effect flex items-center justify-center p-4 w-16 h-16 rounded-full">
+                    <i class="bi bi-mortarboard-fill text-3xl text-indigo-600"></i>
+                </div>
+            </div>
+            <h1 class="text-3xl font-bold text-center mb-1 text-gray-800">Ed Quiz</h1>
+            <p class="text-center text-gray-600 mb-8">Learn, play, and compete!</p>
+            <div class="space-y-4">
+                <input type="tel" id="phoneNumber" placeholder="Enter Mobile Number" class="form-input" maxlength="10">
+                <button onclick="requestOTP()" class="clay-button w-full p-3 text-gray-800 font-medium">Get OTP</button>
+                <div id="otpSection" class="hidden space-y-4">
+                    <input type="text" id="otp" placeholder="Enter OTP" class="form-input" maxlength="6">
+                    <button onclick="verifyOTP()" class="clay-button w-full p-3 text-gray-800 font-medium">Verify OTP</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Home Page -->
+    <div id="homePage" class="hidden min-h-screen pb-16">
+        <div class="clay-effect p-6 max-w-md mx-auto mt-6 mb-8">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center">
+                    <div class="clay-effect flex items-center justify-center p-2 w-10 h-10 rounded-full mr-3">
+                        <i class="bi bi-mortarboard-fill text-xl text-indigo-600"></i>
+                    </div>
+                    <h2 class="text-xl font-bold text-gray-800">Ed Quiz</h2>
+                </div>
+                <div class="flex items-center">
+                    <div class="clay-button p-2 rounded-full mr-3" onclick="showProfilePage()">
+                        <i class="bi bi-person text-gray-600"></i>
+                    </div>
+                    <div class="clay-button p-2 rounded-full" onclick="logout()">
+                        <i class="bi bi-box-arrow-right text-gray-600"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="clay-effect p-6 max-w-md mx-auto mb-6">
+            <h3 class="text-xl font-bold text-center mb-6 text-gray-800">Welcome, <span id="userNameDisplay">Player</span>!</h3>
+            <div class="space-y-4">
+                <button onclick="showGameMode('play')" class="clay-button w-full p-4 text-gray-800 font-medium flex items-center justify-center">
+                    <i class="bi bi-controller mr-3 text-xl text-indigo-600"></i>
+                    <span>Play Game</span>
+                </button>
+                <button onclick="showGameMode('host')" class="clay-button w-full p-4 text-gray-800 font-medium flex items-center justify-center">
+                    <i class="bi bi-person-workspace mr-3 text-xl text-amber-600"></i>
+                    <span>Host Game</span>
+                </button>
+            </div>
+        </div>
+        
+        <div class="clay-effect p-6 max-w-md mx-auto">
+            <h3 class="text-lg font-semibold mb-4 text-gray-800">Your Stats</h3>
+            <div class="flex space-x-3">
+                <div class="clay-effect p-3 rounded-lg flex-1 text-center">
+                    <div class="text-2xl font-bold text-indigo-600" id="userTotalQuizzes">0</div>
+                    <div class="text-sm text-gray-600">Quizzes</div>
+                </div>
+                <div class="clay-effect p-3 rounded-lg flex-1 text-center">
+                    <div class="text-2xl font-bold text-green-600" id="userBestScore">0</div>
+                    <div class="text-sm text-gray-600">Best Score</div>
+                </div>
+                <div class="clay-effect p-3 rounded-lg flex-1 text-center">
+                    <div class="text-2xl font-bold text-amber-600" id="userRank">-</div>
+                    <div class="text-sm text-gray-600">Rank</div>
+                </div>
+            </div>
+            
+            <button onclick="showLeaderboard()" class="clay-button w-full p-3 mt-6 text-gray-800 font-medium flex items-center justify-center">
+                <i class="bi bi-trophy mr-2 text-amber-600"></i>
+                <span>View Leaderboard</span>
+            </button>
+        </div>
+        
+        <!-- Bottom Navigation Bar -->
+        <div class="fixed bottom-0 left-0 right-0 flex justify-around items-center clay-effect rounded-t-2xl p-3 bg-white border-t border-gray-200">
+            <div class="nav-icon active" onclick="goToHome()">
+                <i class="bi bi-house-fill"></i>
+                <span>Home</span>
+            </div>
+            <div class="nav-icon" onclick="showGameMode('play')">
+                <i class="bi bi-controller"></i>
+                <span>Play</span>
+            </div>
+            <div class="nav-icon" onclick="showLeaderboard()">
+                <i class="bi bi-trophy"></i>
+                <span>Leaderboard</span>
+            </div>
+            <div class="nav-icon" onclick="showProfilePage()">
+                <i class="bi bi-person"></i>
+                <span>Profile</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Profile Page -->
+    <div id="profilePage" class="hidden min-h-screen pb-16">
+        <div class="clay-effect p-6 max-w-md mx-auto mt-6 mb-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center">
+                    <button onclick="goToHome()" class="clay-button p-2 rounded-full mr-3">
+                        <i class="bi bi-arrow-left text-gray-600"></i>
+                    </button>
+                    <h2 class="text-xl font-bold text-gray-800">Profile</h2>
+                </div>
+            </div>
+        </div>
+        
+        <div class="clay-effect p-6 max-w-md mx-auto mb-6">
+            <div class="flex justify-center mb-6">
+                <div class="clay-effect w-24 h-24 rounded-full flex items-center justify-center">
+                    <i class="bi bi-person-fill text-5xl text-gray-500"></i>
+                </div>
+            </div>
+            
+            <form id="profileForm" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Name</label>
+                    <input type="text" id="profileName" class="form-input" placeholder="Your name">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                    <input type="email" id="profileEmail" class="form-input" placeholder="Your email">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Mobile Number</label>
+                    <input type="tel" id="profilePhone" class="form-input" disabled>
+                </div>
+                
+                <button type="button" onclick="saveProfile()" class="clay-button w-full p-3 text-gray-800 font-medium">Save Profile</button>
+                <button type="button" onclick="showResetPassword()" class="clay-button w-full p-3 text-gray-800 font-medium">Reset Password</button>
+                <button type="button" onclick="logout()" class="clay-button w-full p-3 bg-red-50 text-red-600 font-medium">Logout</button>
+            </form>
+        </div>
+        
+        <!-- Bottom Navigation Bar -->
+        <div class="fixed bottom-0 left-0 right-0 flex justify-around items-center clay-effect rounded-t-2xl p-3 bg-white border-t border-gray-200">
+            <div class="nav-icon" onclick="goToHome()">
+                <i class="bi bi-house"></i>
+                <span>Home</span>
+            </div>
+            <div class="nav-icon" onclick="showGameMode('play')">
+                <i class="bi bi-controller"></i>
+                <span>Play</span>
+            </div>
+            <div class="nav-icon" onclick="showLeaderboard()">
+                <i class="bi bi-trophy"></i>
+                <span>Leaderboard</span>
+            </div>
+            <div class="nav-icon active" onclick="showProfilePage()">
+                <i class="bi bi-person-fill"></i>
+                <span>Profile</span>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Reset Password Modal -->
+    <div id="resetPasswordModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+        <div class="clay-effect p-6 w-full max-w-md">
+            <h3 class="text-xl font-bold text-gray-800 mb-4">Reset Password</h3>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Mobile Number</label>
+                    <input type="tel" id="resetPhoneNumber" class="form-input" disabled>
+                </div>
+                <button type="button" onclick="requestPasswordResetOTP()" class="clay-button w-full p-3 text-gray-800 font-medium">Request OTP</button>
+                <div id="resetOTPSection" class="hidden space-y-4">
+                    <input type="text" id="resetOTP" placeholder="Enter OTP" class="form-input" maxlength="6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">New Password</label>
+                        <input type="password" id="newPassword" class="form-input" placeholder="Enter new password">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Confirm Password</label>
+                        <input type="password" id="confirmPassword" class="form-input" placeholder="Confirm new password">
+                    </div>
+                    <button onclick="resetPassword()" class="clay-button w-full p-3 text-gray-800 font-medium">Reset Password</button>
+                </div>
+                <button onclick="closeResetPasswordModal()" class="clay-button w-full p-3 bg-red-50 text-red-600 font-medium">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Play Game Page -->
+    <div id="playGamePage" class="hidden min-h-screen pb-16 p-4">
+        <div class="clay-effect p-6 max-w-md mx-auto mt-4 mb-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center">
+                    <button onclick="goToHome()" class="clay-button p-2 rounded-full mr-3">
+                        <i class="bi bi-arrow-left text-gray-600"></i>
+                    </button>
+                    <h2 class="text-xl font-bold text-gray-800">Game Setup</h2>
+                </div>
+            </div>
+        </div>
+        
+        <div class="clay-effect p-6 max-w-md mx-auto mt-4">
+            <form id="gameSetupForm" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Quiz Topic</label>
+                    <select id="topic" class="form-input">
+                        <option value="">Select Topic</option>
+                        <option value="science">Science</option>
+                        <option value="history">History</option>
+                        <option value="geography">Geography</option>
+                        <option value="math">Mathematics</option>
+                        <option value="literature">Literature</option>
+                        <option value="technology">Technology</option>
+                        <option value="sports">Sports</option>
+                        <option value="general">General Knowledge</option>
+                    </select>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Difficulty Level</label>
+                    <select id="difficulty" class="form-input">
+                        <option value="">Select Difficulty</option>
+                        <option value="easy">Easy</option>
+                        <option value="medium">Medium</option>
+                        <option value="hard">Hard</option>
+                    </select>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Number of Questions</label>
+                    <select id="questionCount" class="form-input">
+                        <option value="">Select Number</option>
+                    </select>
+                </div>
+                
+                <button type="button" onclick="startGame()" class="clay-button w-full p-3 text-gray-800 font-medium flex items-center justify-center">
+                    <i class="bi bi-play-fill mr-2 text-green-600"></i>
+                    <span>Start Quiz</span>
+                </button>
+            </form>
+        </div>
+        
+        <!-- Bottom Navigation Bar -->
+        <div class="fixed bottom-0 left-0 right-0 flex justify-around items-center clay-effect rounded-t-2xl p-3 bg-white border-t border-gray-200">
+            <div class="nav-icon" onclick="goToHome()">
+                <i class="bi bi-house"></i>
+                <span>Home</span>
+            </div>
+            <div class="nav-icon active" onclick="showGameMode('play')">
+                <i class="bi bi-controller-fill"></i>
+                <span>Play</span>
+            </div>
+            <div class="nav-icon" onclick="showLeaderboard()">
+                <i class="bi bi-trophy"></i>
+                <span>Leaderboard</span>
+            </div>
+            <div class="nav-icon" onclick="showProfilePage()">
+                <i class="bi bi-person"></i>
+                <span>Profile</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quiz Page -->
+    <div id="quizPage" class="hidden min-h-screen p-4">
+        <div class="clay-effect p-4 max-w-md mx-auto mt-4 mb-4">
+            <div class="flex justify-between items-center">
+                <div class="flex items-center">
+                    <div class="clay-button p-2 rounded-full" onclick="confirmQuitQuiz()">
+                        <i class="bi bi-x-lg text-gray-600"></i>
+                    </div>
+                </div>
+                <div class="text-lg font-semibold">Question <span id="currentQuestion">1</span>/<span id="totalQuestions">10</span></div>
+                <div class="flex items-center">
+                    <i class="bi bi-clock mr-1"></i>
+                    <div id="timer" class="text-lg font-semibold">30</div>
+                </div>
+            </div>
+            <div class="w-full h-2 bg-gray-200 rounded-full mt-3">
+                <div id="progressBar" class="progress-bar h-full" style="width: 10%"></div>
+            </div>
+        </div>
+        
+        <div class="max-w-md mx-auto">
+            <div class="clay-effect p-6 mb-4">
+                <p id="questionText" class="text-lg mb-1 font-medium">Question text goes here?</p>
+                <p id="questionCategory" class="text-sm text-gray-600 mb-0"><span id="questionDifficulty" class="inline-block px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-800">Medium</span> <span id="questionTopic">Science</span></p>
+            </div>
+            
+            <div id="options" class="space-y-3 mb-4"></div>
+            
+            <div class="clay-effect p-4 flex justify-between">
+                <div>
+                    <div class="text-xs text-gray-600">Current Score</div>
+                    <div class="text-xl font-bold" id="currentScore">0</div>
+                </div>
+                <div>
+                    <div class="text-xs text-gray-600">Correct Answers</div>
+                    <div class="text-xl font-bold text-green-600" id="questionsCorrect">0</div>
+                </div>
+                <div>
+                    <div class="text-xs text-gray-600">Timer</div>
+                    <div class="w-full h-2 bg-gray-200 rounded-full mt-1">
+                        <div id="timerProgressBar" class="progress-bar h-full" style="width: 100%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Results Page -->
+    <div id="resultsPage" class="hidden min-h-screen p-4 pb-16">
+        <div class="clay-effect p-6 max-w-md mx-auto mt-4 mb-4">
+            <div class="flex items-center justify-between">
+                <h2 class="text-xl font-bold text-gray-800">Quiz Results</h2>
+                <div class="flex items-center">
+                    <button onclick="goToHome()" class="clay-button p-2 rounded-full">
+                        <i class="bi bi-house text-gray-600"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="clay-effect p-6 max-w-md mx-auto mb-6 text-center">
+            <div id="scoreMessage" class="text-lg text-gray-600 mb-4">Great job!</div>
+            
+            <div class="mb-6">
+                <div id="finalScore" class="text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600">0</div>
+                <div class="text-gray-500">points</div>
+            </div>
+            
+            <div class="grid grid-cols-2 gap-4 mb-6">
+                <div class="clay-effect p-3 rounded-lg text-center">
+                    <div id="correctAnswers" class="text-2xl font-bold text-green-600">0/10</div>
+                    <div class="text-sm text-gray-600">Correct Answers</div>
+                </div>
+                <div class="clay-effect p-3 rounded-lg text-center">
+                    <div id="averageTime" class="text-2xl font-bold text-blue-600">0.0s</div>
+                    <div class="text-sm text-gray-600">Avg. Time</div>
+                </div>
+            </div>
+            
+            <div class="mb-6">
+                <div class="flex justify-between mb-1">
+                    <span class="text-sm font-medium">Accuracy</span>
+                    <span class="text-sm font-medium" id="accuracyText">0%</span>
+                </div>
+                <div class="w-full bg-gray-200 rounded-full h-2">
+                    <div id="correctAnswersBar" class="bg-green-500 h-2 rounded-full" style="width: 0%"></div>
+                </div>
+            </div>
+            
+            <div class="space-y-3">
+                <button onclick="restartQuiz()" class="clay-button w-full p-3 text-gray-800 font-medium flex items-center justify-center">
+                    <i class="bi bi-arrow-repeat mr-2"></i>
+                    <span>Play Again</span>
+                </button>
+                <button onclick="showLeaderboard()" class="clay-button w-full p-3 text-gray-800 font-medium flex items-center justify-center">
+                    <i class="bi bi-trophy mr-2"></i>
+                    <span>View Leaderboard</span>
+                </button>
+            </div>
+        </div>
+        
+        <!-- Bottom Navigation Bar -->
+        <div class="fixed bottom-0 left-0 right-0 flex justify-around items-center clay-effect rounded-t-2xl p-3 bg-white border-t border-gray-200">
+            <div class="nav-icon" onclick="goToHome()">
+                <i class="bi bi-house"></i>
+                <span>Home</span>
+            </div>
+            <div class="nav-icon" onclick="showGameMode('play')">
+                <i class="bi bi-controller"></i>
+                <span>Play</span>
+            </div>
+            <div class="nav-icon" onclick="showLeaderboard()">
+                <i class="bi bi-trophy"></i>
+                <span>Leaderboard</span>
+            </div>
+            <div class="nav-icon" onclick="showProfilePage()">
+                <i class="bi bi-person"></i>
+                <span>Profile</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Leaderboard Page -->
+    <div id="leaderboardPage" class="hidden min-h-screen p-4 pb-16">
+        <div class="clay-effect p-6 max-w-md mx-auto mt-4 mb-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center">
+                    <button onclick="goToHome()" class="clay-button p-2 rounded-full mr-3">
+                        <i class="bi bi-arrow-left text-gray-600"></i>
+                    </button>
+                    <h2 class="text-xl font-bold text-gray-800">Leaderboard</h2>
+                </div>
+            </div>
+        </div>
+        
+        <div class="clay-effect p-4 max-w-md mx-auto mb-4">
+            <div class="space-y-2">
+                <select id="leaderboardFilter" class="form-input" onchange="filterLeaderboard()">
+                    <option value="all">All Difficulties</option>
+                    <option value="easy">Easy</option>
+                    <option value="medium">Medium</option>
+                    <option value="hard">Hard</option>
+                </select>
+            </div>
+        </div>
+        
+        <div class="max-w-md mx-auto mb-4">
+            <div class="flex space-x-2 mb-6">
+                <button onclick="setLeaderboardPeriod('all')" class="clay-button flex-1 py-2 text-center text-sm text-gray-800 font-medium leaderboard-period-btn active">All Time</button>
+                <button onclick="setLeaderboardPeriod('month')" class="clay-button flex-1 py-2 text-center text-sm text-gray-800 font-medium leaderboard-period-btn">This Month</button>
+                <button onclick="setLeaderboardPeriod('week')" class="clay-button flex-1 py-2 text-center text-sm text-gray-800 font-medium leaderboard-period-btn">This Week</button>
+            </div>
+            
+            <!-- Top 3 Players -->
+            <div id="topLeaderboard" class="relative h-48 mb-6">
+                <div class="absolute top-12 left-1/2 transform -translate-x-1/2 z-20">
+                    <div id="firstPlace" class="flex flex-col items-center">
+                        <div class="clay-effect w-20 h-20 rounded-full flex items-center justify-center mb-2 border-4 border-yellow-400 shadow-lg">
+                            <i class="bi bi-person-fill text-4xl text-gray-500"></i>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-sm font-bold" id="firstName">-</div>
+                            <div class="text-lg font-bold text-yellow-600" id="firstScore">-</div>
+                        </div>
+                        <div class="absolute -top-4 left-1/2 transform -translate-x-1/2">
+                            <div class="clay-effect px-3 py-1 rounded-full text-yellow-600 text-sm font-bold">🥇 1st</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="absolute top-24 left-0 z-10">
+                    <div id="secondPlace" class="flex flex-col items-center">
+                        <div class="clay-effect w-16 h-16 rounded-full flex items-center justify-center mb-2 border-4 border-gray-300 shadow-md">
+                            <i class="bi bi-person-fill text-3xl text-gray-500"></i>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-xs font-bold" id="secondName">-</div>
+                            <div class="text-base font-bold text-gray-600" id="secondScore">-</div>
+                        </div>
+                        <div class="absolute -top-4 left-1/2 transform -translate-x-1/2">
+                            <div class="clay-effect px-3 py-1 rounded-full text-gray-600 text-xs font-bold">🥈 2nd</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="absolute top-28 right-0 z-10">
+                    <div id="thirdPlace" class="flex flex-col items-center">
+                        <div class="clay-effect w-14 h-14 rounded-full flex items-center justify-center mb-2 border-4 border-amber-700 shadow-md">
+                            <i class="bi bi-person-fill text-2xl text-gray-500"></i>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-xs font-bold" id="thirdName">-</div>
+                            <div class="text-base font-bold text-amber-700" id="thirdScore">-</div>
+                        </div>
+                        <div class="absolute -top-4 left-1/2 transform -translate-x-1/2">
+                            <div class="clay-effect px-3 py-1 rounded-full text-amber-700 text-xs font-bold">🥉 3rd</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <h3 class="text-lg font-semibold mb-3 text-gray-800">Rankings</h3>
+            <div id="noLeaderboardData" class="text-center text-gray-500 py-8 clay-effect">
+                No scores recorded yet. Take a quiz to get on the leaderboard!
+            </div>
+            <div id="leaderboardEntries" class="space-y-3 mb-6">
+                <!-- Leaderboard entries will be added here -->
+            </div>
+        </div>
+        
+        <!-- Bottom Navigation Bar -->
+        <div class="fixed bottom-0 left-0 right-0 flex justify-around items-center clay-effect rounded-t-2xl p-3 bg-white border-t border-gray-200">
+            <div class="nav-icon" onclick="goToHome()">
+                <i class="bi bi-house"></i>
+                <span>Home</span>
+            </div>
+            <div class="nav-icon" onclick="showGameMode('play')">
+                <i class="bi bi-controller"></i>
+                <span>Play</span>
+            </div>
+            <div class="nav-icon active" onclick="showLeaderboard()">
+                <i class="bi bi-trophy-fill"></i>
+                <span>Leaderboard</span>
+            </div>
+            <div class="nav-icon" onclick="showProfilePage()">
+                <i class="bi bi-person"></i>
+                <span>Profile</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quit Quiz Confirmation Modal -->
+    <div id="quitQuizModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+        <div class="clay-effect p-6 w-full max-w-md">
+            <h3 class="text-xl font-bold text-center text-gray-800 mb-4">Quit Quiz?</h3>
+            <p class="text-center text-gray-600 mb-6">Are you sure you want to quit? Your progress will be lost.</p>
+            <div class="flex space-x-3">
+                <button onclick="closeQuitQuizModal()" class="clay-button flex-1 p-3 text-gray-800 font-medium">Continue Quiz</button>
+                <button onclick="quitQuiz()" class="clay-button flex-1 p-3 bg-red-50 text-red-600 font-medium">Quit Quiz</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="hidden fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+        <div class="clay-effect p-6 flex flex-col items-center">
+            <div class="loader mb-4"></div>
+            <p id="loadingMessage" class="text-lg font-medium">Loading questions...</p>
+        </div>
+    </div>
+    
+    <!-- Toast Notification -->
+    <div id="toast" class="hidden fixed top-4 left-1/2 transform -translate-x-1/2 clay-effect px-4 py-2 rounded-lg text-center max-w-xs shadow-lg z-50"></div>
+
+    <div id="confettiContainer" class="fixed inset-0 pointer-events-none z-30"></div>
+
+    <script>
+        // Populate question count dropdown
+        const questionCount = document.getElementById('questionCount');
+        for(let i = 10; i <= 100; i += 10) {
+            const option = document.createElement('option');
+            option.value = i;
+            option.textContent = i;
+            questionCount.appendChild(option);
+        }
+
+        // User data
+        let userData = {
+            phoneNumber: '',
+            name: 'Player',
+            email: '',
+            quizzesTaken: 0,
+            bestScore: 0
+        };
+
+        // Global Variables for quiz
+        let currentQuestions = [];
+        let currentQuestionIndex = 0;
+        let timer;
+        let timePerQuestion = 30;
+        let score = 0;
+        let correctAnswers = 0;
+        let answerTimes = [];
+        let quizStartTime;
+        let leaderboard = JSON.parse(localStorage.getItem('edQuizLeaderboard')) || [];
+        let currentLeaderboardPeriod = 'all';
+        
+        // Check if user is already logged in
+        function checkLoggedInUser() {
+            const savedUser = localStorage.getItem('edQuizUser');
+            if (savedUser) {
+                userData = JSON.parse(savedUser);
+                updateUserInterface();
+                showPage('homePage');
+            } else {
+                showPage('loginPage');
+            }
+        }
+        
+        // Update UI with user data
+        function updateUserInterface() {
+            document.getElementById('userNameDisplay').textContent = userData.name;
+            document.getElementById('profileName').value = userData.name || '';
+            document.getElementById('profileEmail').value = userData.email || '';
+            document.getElementById('profilePhone').value = userData.phoneNumber || '';
+            document.getElementById('resetPhoneNumber').value = userData.phoneNumber || '';
+            
+            // Update stats on home page
+            document.getElementById('userTotalQuizzes').textContent = userData.quizzesTaken || 0;
+            document.getElementById('userBestScore').textContent = userData.bestScore || 0;
+            
+            // Calculate user rank
+            if (leaderboard.length > 0) {
+                const userIndex = leaderboard.findIndex(entry => entry.phoneNumber === userData.phoneNumber);
+                if (userIndex !== -1) {
+                    document.getElementById('userRank').textContent = userIndex + 1;
+                } else {
+                    document.getElementById('userRank').textContent = '-';
+                }
+            }
+        }
+
+        function showPage(pageId) {
+            document.querySelectorAll('div[id$="Page"]').forEach(page => {
+                page.classList.add('hidden');
+            });
+            document.getElementById(pageId).classList.remove('hidden');
+            
+            // Update navigation icons
+            document.querySelectorAll('.nav-icon').forEach(icon => {
+                icon.classList.remove('active');
+            });
+            
+            // Set active nav icon based on page
+            if (pageId === 'homePage') {
+                document.querySelector('.nav-icon:nth-child(1)').classList.add('active');
+            } else if (pageId === 'playGamePage' || pageId === 'quizPage') {
+                document.querySelector('.nav-icon:nth-child(2)').classList.add('active');
+            } else if (pageId === 'leaderboardPage') {
+                document.querySelector('.nav-icon:nth-child(3)').classList.add('active');
+            } else if (pageId === 'profilePage') {
+                document.querySelector('.nav-icon:nth-child(4)').classList.add('active');
+            }
+        }
+
+        function showLoading(message = 'Loading...') {
+            document.getElementById('loadingMessage').textContent = message;
+            document.getElementById('loadingOverlay').classList.remove('hidden');
+        }
+
+        function hideLoading() {
+            document.getElementById('loadingOverlay').classList.add('hidden');
+        }
+
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.remove('hidden');
+            
+            // Set toast color based on type
+            if (type === 'error') {
+                toast.classList.add('bg-red-100', 'text-red-800');
+                toast.classList.remove('bg-green-100', 'text-green-800', 'bg-blue-100', 'text-blue-800');
+            } else if (type === 'info') {
+                toast.classList.add('bg-blue-100', 'text-blue-800');
+                toast.classList.remove('bg-green-100', 'text-green-800', 'bg-red-100', 'text-red-800');
+            } else {
+                toast.classList.add('bg-green-100', 'text-green-800');
+                toast.classList.remove('bg-red-100', 'text-red-800', 'bg-blue-100', 'text-blue-800');
+            }
+            
+            setTimeout(() => {
+                toast.classList.add('hidden');
+            }, 3000);
+        }
+
+        function requestOTP() {
+            const phoneNumber = document.getElementById('phoneNumber').value;
+            if(phoneNumber.length !== 10 || isNaN(phoneNumber)) {
+                showToast('Please enter a valid 10-digit mobile number', 'error');
+                return;
+            }
+            userData.phoneNumber = phoneNumber;
+            document.getElementById('otpSection').classList.remove('hidden');
+            
+            // Simulate OTP being sent
+            showLoading('Sending OTP...');
+            setTimeout(() => {
+                hideLoading();
+                showToast('OTP sent to your mobile number');
+            }, 1500);
+        }
+
+        function verifyOTP() {
+            const otp = document.getElementById('otp').value;
+            if(otp.length !== 6 || isNaN(otp)) {
+                showToast('Please enter a valid 6-digit OTP', 'error');
+                return;
+            }
+            
+            // Simulate OTP verification
+            showLoading('Verifying OTP...');
+            setTimeout(() => {
+                hideLoading();
+                
+                // Save user to local storage
+                localStorage.setItem('edQuizUser', JSON.stringify(userData));
+                updateUserInterface();
+                showPage('homePage');
+                showToast('Successfully logged in!');
+            }, 1500);
+        }
+
+        function logout() {
+            // Clear user data from local storage
+            localStorage.removeItem('edQuizUser');
+            
+            // Reset form fields
+            document.getElementById('phoneNumber').value = '';
+            document.getElementById('otp').value = '';
+            document.getElementById('otpSection').classList.add('hidden');
+            
+            // Navigate to login page
+            showPage('loginPage');
+            showToast('Successfully logged out');
+        }
+
+        function showProfilePage() {
+            // Fill profile form with user data
+            document.getElementById('profileName').value = userData.name || '';
+            document.getElementById('profileEmail').value = userData.email || '';
+            document.getElementById('profilePhone').value = userData.phoneNumber || '';
+            
+            showPage('profilePage');
+        }
+
+        function saveProfile() {
+            const name = document.getElementById('profileName').value.trim();
+            const email = document.getElementById('profileEmail').value.trim();
+            
+            if (!name) {
+                showToast('Please enter your name', 'error');
+                return;
+            }
+            
+            if (email && !isValidEmail(email)) {
+                showToast('Please enter a valid email', 'error');
+                return;
+            }
+            
+            // Update user data
+            userData.name = name;
+            userData.email = email;
+            
+            // Save to local storage
+            localStorage.setItem('edQuizUser', JSON.stringify(userData));
+            
+            // Update UI
+            updateUserInterface();
+            showToast('Profile updated successfully');
+        }
+        
+        function isValidEmail(email) {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return emailRegex.test(email);
+        }
+        
+        function showResetPassword() {
+            // Set phone number in reset form
+            document.getElementById('resetPhoneNumber').value = userData.phoneNumber;
+            document.getElementById('resetPasswordModal').classList.remove('hidden');
+            document.getElementById('resetOTPSection').classList.add('hidden');
+        }
+        
+        function closeResetPasswordModal() {
+            document.getElementById('resetPasswordModal').classList.add('hidden');
+        }
+        
+        function requestPasswordResetOTP() {
+            // Simulate OTP being sent
+            showLoading('Sending OTP...');
+            setTimeout(() => {
+                hideLoading();
+                document.getElementById('resetOTPSection').classList.remove('hidden');
+                showToast('OTP sent to your mobile number');
+            }, 1500);
+        }
+        
+        function resetPassword() {
+            const otp = document.getElementById('resetOTP').value;
+            const newPassword = document.getElementById('newPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            
+            if (otp.length !== 6 || isNaN(otp)) {
+                showToast('Please enter a valid 6-digit OTP', 'error');
+                return;
+            }
+            
+            if (!newPassword || newPassword.length < 6) {
+                showToast('Password must be at least 6 characters', 'error');
+                return;
+            }
+            
+            if (newPassword !== confirmPassword) {
+                showToast('Passwords do not match', 'error');
+                return;
+            }
+            
+            // Simulate password reset
+            showLoading('Resetting password...');
+            setTimeout(() => {
+                hideLoading();
+                closeResetPasswordModal();
+                showToast('Password reset successfully');
+            }, 1500);
+        }
+
+        function showGameMode(mode) {
+            if(mode === 'play') {
+                showPage('playGamePage');
+            } else {
+                showToast('Host game feature coming soon!', 'info');
+            }
+        }
+
+        function goToHome() {
+            updateUserInterface();
+            showPage('homePage');
+        }
+
+        async function startGame() {
+            const topic = document.getElementById('topic').value;
+            const difficulty = document.getElementById('difficulty').value;
+            const count = document.getElementById('questionCount').value;
+
+            if(!topic || !difficulty || !count) {
+                showToast('Please select all options', 'error');
+                return;
+            }
+
+            showLoading('Generating questions...');
+            
+            try {
+                // In a real app, you would make an API call to ChatGPT here
+                // For demo purposes, we'll simulate the API call with a timeout
+                await new Promise(resolve => setTimeout(resolve, 2000));
+                
+                // Generate dummy questions for the demo
+                currentQuestions = generateDummyQuestions(topic, difficulty, parseInt(count));
+                currentQuestionIndex = 0;
+                score = 0;
+                correctAnswers = 0;
+                answerTimes = [];
+                document.getElementById('currentScore').textContent = score;
+                document.getElementById('questionsCorrect').textContent = correctAnswers;
+                
+                // Update progress bar
+                document.getElementById('progressBar').style.width = '0%';
+                
+                // Start the quiz
+                hideLoading();
+                showPage('quizPage');
+                quizStartTime = new Date();
+                showQuestion();
+            } catch (error) {
+                hideLoading();
+                showToast('Error generating questions. Please try again.', 'error');
+                console.error('Error:', error);
+            }
+        }
+
+        function generateDummyQuestions(topic, difficulty, count) {
+            const topics = {
+                science: [
+                    "What is the chemical symbol for gold?",
+                    "Which is the largest planet in our solar system?",
+                    "What is the closest star to Earth?",
+                    "Who developed the theory of relativity?",
+                    "What is the smallest unit of matter?",
+                    "What process do plants use to make food?",
+                    "What is the human body's largest organ?",
+                    "What gas do plants absorb from the atmosphere?",
+                    "Which element has the atomic number 1?",
+                    "What is the speed of light?"
+                ],
+                history: [
+                    "In what year did World War II end?",
+                    "Who was the first President of the United States?",
+                    "Which empire was ruled by Julius Caesar?",
+                    "What year did the Berlin Wall fall?",
+                    "Who wrote the Declaration of Independence?",
+                    "When did the French Revolution begin?",
+                    "Which civilization built the pyramids?",
+                    "Who was the first person to circumnavigate the globe?",
+                    "When did the Industrial Revolution begin?",
+                    "Who was the first female Prime Minister of the UK?"
+                ],
+                geography: [
+                    "What is the largest ocean on Earth?",
+                    "Which country has the largest population?",
+                    "What is the capital of Japan?",
+                    "Which river is the longest in the world?",
+                    "What is the highest mountain in the world?",
+                    "Which continent is the driest?",
+                    "What is the capital of Australia?",
+                    "Which country is known as the Land of Fire and Ice?",
+                    "What is the largest desert in the world?",
+                    "Which countries share the longest international border?"
+                ],
+                math: [
+                    "What is the value of π (pi) to two decimal places?",
+                    "What is the square root of 64?",
+                    "What is 5 factorial?",
+                    "What is the Pythagorean theorem?",
+                    "What is the sum of the angles in a triangle?",
+                    "What is the formula for the area of a circle?",
+                    "What is the result of 2 raised to the power of 8?",
+                    "What is the value of x in the equation 2x + 5 = 13?",
+                    "What is the formula for the volume of a sphere?",
+                    "What is the probability of getting heads when flipping a fair coin?"
+                ]
+            };
+
+            const options = {
+                science: [
+                    ["Au", "Ag", "Fe", "Cu"],
+                    ["Jupiter", "Saturn", "Mars", "Venus"],
+                    ["The Sun", "Proxima Centauri", "Alpha Centauri", "Sirius"],
+                    ["Albert Einstein", "Isaac Newton", "Stephen Hawking", "Niels Bohr"],
+                    ["Atom", "Molecule", "Cell", "Quark"],
+                    ["Photosynthesis", "Respiration", "Fermentation", "Digestion"],
+                    ["Skin", "Heart", "Liver", "Brain"],
+                    ["Carbon dioxide", "Oxygen", "Nitrogen", "Hydrogen"],
+                    ["Hydrogen", "Helium", "Carbon", "Oxygen"],
+                    ["299,792 km/s", "300,000 km/s", "199,792 km/s", "250,000 km/s"]
+                ],
+                history: [
+                    ["1945", "1944", "1946", "1943"],
+                    ["George Washington", "Thomas Jefferson", "John Adams", "Benjamin Franklin"],
+                    ["Roman Empire", "Greek Empire", "Byzantine Empire", "Egyptian Empire"],
+                    ["1989", "1991", "1987", "1985"],
+                    ["Thomas Jefferson", "George Washington", "John Adams", "Benjamin Franklin"],
+                    ["1789", "1799", "1779", "1769"],
+                    ["Ancient Egyptians", "Mayans", "Romans", "Greeks"],
+                    ["Ferdinand Magellan", "Christopher Columbus", "Vasco da Gama", "James Cook"],
+                    ["18th century", "17th century", "19th century", "16th century"],
+                    ["Margaret Thatcher", "Theresa May", "Queen Victoria", "Queen Elizabeth"]
+                ],
+                geography: [
+                    ["Pacific", "Atlantic", "Indian", "Arctic"],
+                    ["China", "India", "United States", "Russia"],
+                    ["Tokyo", "Kyoto", "Osaka", "Hiroshima"],
+                    ["Nile", "Amazon", "Mississippi", "Yangtze"],
+                    ["Mount Everest", "K2", "Kangchenjunga", "Lhotse"],
+                    ["Antarctica", "Australia", "Africa", "South America"],
+                    ["Canberra", "Sydney", "Melbourne", "Brisbane"],
+                    ["Iceland", "Norway", "Chile", "New Zealand"],
+                    ["Sahara Desert", "Antarctic Desert", "Arabian Desert", "Gobi Desert"],
+                    ["Canada and USA", "Russia and China", "Brazil and Argentina", "India and Pakistan"]
+                ],
+                math: [
+                    ["3.14", "3.16", "3.12", "3.18"],
+                    ["8", "6", "10", "12"],
+                    ["120", "60", "24", "720"],
+                    ["a² + b² = c²", "a + b = c", "a × b = c", "a² - b² = c²"],
+                    ["180 degrees", "190 degrees", "170 degrees", "360 degrees"],
+                    ["πr²", "2πr", "πr³", "2πr²"],
+                    ["256", "128", "512", "64"],
+                    ["4", "6", "8", "10"],
+                    ["(4/3)πr³", "πr³", "πr²", "4πr²"],
+                    ["0.5", "0.25", "0.75", "0.33"]
+                ]
+            };
+
+            const correctAnswers = {
+                science: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                history: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                geography: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                math: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+            };
+
+            const questions = [];
+            const topicQuestions = topics[topic] || topics.science;
+            const topicOptions = options[topic] || options.science;
+            const topicAnswers = correctAnswers[topic] || correctAnswers.science;
+
+            // Create question objects
+            for (let i = 0; i < Math.min(count, topicQuestions.length); i++) {
+                questions.push({
+                    question: topicQuestions[i],
+                    options: topicOptions[i],
+                    correctAnswer: topicAnswers[i],
+                    difficulty: difficulty,
+                    topic: topic,
+                    timeForQuestion: difficulty === 'easy' ? 30 : (difficulty === 'medium' ? 20 : 15)
+                });
+            }
+
+            // If not enough questions in the main topic, fill with questions from other topics
+            if (questions.length < count) {
+                const otherTopics = Object.keys(topics).filter(t => t !== topic);
+                let additionalIndex = 0;
+                
+                while (questions.length < count) {
+                    const randomTopic = otherTopics[Math.floor(Math.random() * otherTopics.length)];
+                    const qIndex = additionalIndex % topics[randomTopic].length;
+                    
+                    questions.push({
+                        question: topics[randomTopic][qIndex],
+                        options: options[randomTopic][qIndex],
+                        correctAnswer: correctAnswers[randomTopic][qIndex],
+                        difficulty: difficulty,
+                        topic: randomTopic,
+                        timeForQuestion: difficulty === 'easy' ? 30 : (difficulty === 'medium' ? 20 : 15)
+                    });
+                    
+                    additionalIndex++;
+                }
+            }
+
+            // Shuffle the questions array
+            return shuffleArray(questions);
+        }
+
+        function shuffleArray(array) {
+            const shuffled = [...array];
+            for (let i = shuffled.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+            }
+            return shuffled;
+        }
+
+        function showQuestion() {
+            const question = currentQuestions[currentQuestionIndex];
+            document.getElementById('currentQuestion').textContent = currentQuestionIndex + 1;
+            document.getElementById('totalQuestions').textContent = currentQuestions.length;
+            document.getElementById('questionText').textContent = question.question;
+            document.getElementById('questionDifficulty').textContent = capitalizeFirstLetter(question.difficulty);
+            document.getElementById('questionTopic').textContent = capitalizeFirstLetter(question.topic);
+            
+            // Update progress bar
+            const progressPercentage = ((currentQuestionIndex + 1) / currentQuestions.length) * 100;
+            document.getElementById('progressBar').style.width = `${progressPercentage}%`;
+
+            const optionsContainer = document.getElementById('options');
+            optionsContainer.innerHTML = '';
+            question.options.forEach((option, index) => {
+                const button = document.createElement('button');
+                button.className = 'clay-button w-full p-3 text-gray-800 font-medium';
+                button.textContent = option;
+                button.setAttribute('data-index', index);
+                button.onclick = () => selectAnswer(index);
+                optionsContainer.appendChild(button);
+            });
+
+            // Set timer based on question difficulty
+            timePerQuestion = question.timeForQuestion || 30;
+            startTimer();
+        }
+        
+        function capitalizeFirstLetter(string) {
+            return string.charAt(0).toUpperCase() + string.slice(1);
+        }
+
+        function startTimer() {
+            let timeLeft = timePerQuestion;
+            document.getElementById('timer').textContent = timeLeft;
+            document.getElementById('timerProgressBar').style.width = '100%';
+            
+            clearInterval(timer);
+            const startTime = Date.now();
+            
+            timer = setInterval(() => {
+                const elapsed = Math.floor((Date.now() - startTime) / 1000);
+                timeLeft = timePerQuestion - elapsed;
+                
+                if (timeLeft <= 0) {
+                    timeLeft = 0;
+                    clearInterval(timer);
+                    selectAnswer(-1); // No answer selected
+                }
+                
+                const percentage = (timeLeft / timePerQuestion) * 100;
+                document.getElementById('timer').textContent = timeLeft;
+                document.getElementById('timerProgressBar').style.width = `${percentage}%`;
+                
+                // Change color as time decreases
+                if (timeLeft <= 5) {
+                    document.getElementById('timerProgressBar').style.background = 'linear-gradient(to right, #ef4444, #f87171)';
+                } else if (timeLeft <= 10) {
+                    document.getElementById('timerProgressBar').style.background = 'linear-gradient(to right, #f59e0b, #fbbf24)';
+                } else {
+                    document.getElementById('timerProgressBar').style.background = 'linear-gradient(to right, #3b82f6, #8b5cf6)';
+                }
+            }, 1000);
+        }
+
+        function selectAnswer(selectedIndex) {
+            clearInterval(timer);
+            const question = currentQuestions[currentQuestionIndex];
+            const timeTaken = timePerQuestion - parseInt(document.getElementById('timer').textContent);
+            answerTimes.push(timeTaken);
+            
+            const correct = selectedIndex === question.correctAnswer;
+            
+            // Highlight correct and wrong answers
+            const optionButtons = document.querySelectorAll('#options button');
+            optionButtons.forEach(button => {
+                const index = parseInt(button.getAttribute('data-index'));
+                if (index === question.correctAnswer) {
+                    button.classList.add('correct-answer');
+                } else if (index === selectedIndex) {
+                    button.classList.add('wrong-answer');
+                }
+                button.disabled = true;
+            });
+            
+            // Update score based on correctness and time
+            if (correct) {
+                correctAnswers++;
+                document.getElementById('questionsCorrect').textContent = correctAnswers;
+                
+                // More points for faster answers and higher difficulty
+                const difficultyMultiplier = question.difficulty === 'easy' ? 1 : (question.difficulty === 'medium' ? 1.5 : 2);
+                const timeBonus = Math.max(1, Math.floor((timePerQuestion - timeTaken) / 3));
+                const pointsEarned = Math.floor(10 * difficultyMultiplier + timeBonus);
+                
+                score += pointsEarned;
+                document.getElementById('currentScore').textContent = score;
+                
+                // Show floating score indicator
+                const floatingScore = document.createElement('div');
+                floatingScore.textContent = `+${pointsEarned}`;
+                floatingScore.className = 'absolute text-green-600 font-bold text-xl';
+                floatingScore.style.top = `${Math.random() * 30 + 10}%`;
+                floatingScore.style.left = `${Math.random() * 60 + 20}%`;
+                floatingScore.style.animation = 'float-up 1.5s ease-out forwards';
+                document.getElementById('quizPage').appendChild(floatingScore);
+                
+                setTimeout(() => {
+                    floatingScore.remove();
+                }, 1500);
+            }
+            
+            // Move to next question after delay
+            setTimeout(() => {
+                currentQuestionIndex++;
+                if (currentQuestionIndex < currentQuestions.length) {
+                    showQuestion();
+                } else {
+                    finishQuiz();
+                }
+            }, 1500);
+        }
+
+        function finishQuiz() {
+            // Calculate stats
+            const totalQuestions = currentQuestions.length;
+            const percentCorrect = (correctAnswers / totalQuestions) * 100;
+            const avgTime = answerTimes.length > 0 ? answerTimes.reduce((a, b) => a + b, 0) / answerTimes.length : 0;
+            
+            // Update results page
+            document.getElementById('finalScore').textContent = score;
+            document.getElementById('correctAnswers').textContent = `${correctAnswers}/${totalQuestions}`;
+            document.getElementById('correctAnswersBar').style.width = `${percentCorrect}%`;
+            document.getElementById('averageTime').textContent = `${avgTime.toFixed(1)}s`;
+            document.getElementById('accuracyText').textContent = `${percentCorrect.toFixed(0)}%`;
+            
+            // Set score message
+            let message = "";
+            if (percentCorrect >= 90) message = "Excellent! You're a genius!";
+            else if (percentCorrect >= 70) message = "Great job! Very knowledgeable!";
+            else if (percentCorrect >= 50) message = "Good effort! Keep learning!";
+            else message = "Keep practicing to improve!";
+            
+            document.getElementById('scoreMessage').textContent = message;
+            
+            // Update user stats
+            userData.quizzesTaken = (userData.quizzesTaken || 0) + 1;
+            userData.bestScore = Math.max(userData.bestScore || 0, score);
+            localStorage.setItem('edQuizUser', JSON.stringify(userData));
+            
+            // Add to leaderboard
+            const quizEndTime = new Date();
+            const quizDuration = Math.floor((quizEndTime - quizStartTime) / 1000);
+            
+            const leaderboardEntry = {
+                name: userData.name,
+                phoneNumber: userData.phoneNumber,
+                score: score,
+                correctAnswers: correctAnswers,
+                totalQuestions: totalQuestions,
+                averageTime: avgTime,
+                difficulty: currentQuestions[0].difficulty,
+                topic: currentQuestions[0].topic,
+                date: new Date().toISOString(),
+                duration: quizDuration
+            };
+            
+            leaderboard.push(leaderboardEntry);
+            leaderboard.sort((a, b) => b.score - a.score);
+            localStorage.setItem('edQuizLeaderboard', JSON.stringify(leaderboard));
+            
+            // Show confetti for good scores
+            if (percentCorrect >= 70) {
+                createConfetti();
+            }
+            
+            // Show results page
+            showPage('resultsPage');
+        }
+
+        function createConfetti() {
+            const colors = ['#f43f5e', '#3b82f6', '#22c55e', '#eab308', '#8b5cf6'];
+            const confettiCount = 100;
+            const container = document.getElementById('confettiContainer');
+            container.innerHTML = '';
+            
+            for (let i = 0; i < confettiCount; i++) {
+                const confetti = document.createElement('div');
+                confetti.className = 'confetti';
+                confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                confetti.style.left = `${Math.random() * 100}%`;
+                confetti.style.width = `${Math.random() * 10 + 5}px`;
+                confetti.style.height = `${Math.random() * 10 + 5}px`;
+                confetti.style.animationDuration = `${Math.random() * 3 + 2}s`;
+                confetti.style.animationDelay = `${Math.random() * 0.5}s`;
+                container.appendChild(confetti);
+            }
+            
+            setTimeout(() => {
+                container.innerHTML = '';
+            }, 5000);
+        }
+
+        function restartQuiz() {
+            showPage('playGamePage');
+        }
+        
+        function confirmQuitQuiz() {
+            document.getElementById('quitQuizModal').classList.remove('hidden');
+        }
+        
+        function closeQuitQuizModal() {
+            document.getElementById('quitQuizModal').classList.add('hidden');
+        }
+        
+        function quitQuiz() {
+            clearInterval(timer);
+            closeQuitQuizModal();
+            showPage('homePage');
+        }
+
+        function filterLeaderboard() {
+            showLeaderboard();
+        }
+        
+        function setLeaderboardPeriod(period) {
+            currentLeaderboardPeriod = period;
+            
+            // Update active button state
+            document.querySelectorAll('.leaderboard-period-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.currentTarget.classList.add('active');
+            
+            // Refresh leaderboard
+            showLeaderboard();
+        }
+        
+        function showLeaderboard() {
+            const filter = document.getElementById('leaderboardFilter').value;
+            
+            // Filter by difficulty
+            let filteredLeaderboard = filter === 'all' 
+                ? [...leaderboard] 
+                : leaderboard.filter(entry => entry.difficulty === filter);
+            
+            // Filter by time period
+            if (currentLeaderboardPeriod !== 'all') {
+                const now = new Date();
+                const msInDay = 86400000;
+                
+                if (currentLeaderboardPeriod === 'month') {
+                    // Entries from this month
+                    const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+                    filteredLeaderboard = filteredLeaderboard.filter(entry => 
+                        new Date(entry.date) >= firstDayOfMonth
+                    );
+                } else if (currentLeaderboardPeriod === 'week') {
+                    // Entries from this week (last 7 days)
+                    const weekAgo = new Date(now.getTime() - 7 * msInDay);
+                    filteredLeaderboard = filteredLeaderboard.filter(entry => 
+                        new Date(entry.date) >= weekAgo
+                    );
+                }
+            }
+            
+            const leaderboardEntries = document.getElementById('leaderboardEntries');
+            const noDataMessage = document.getElementById('noLeaderboardData');
+            
+            // Sort by score
+            filteredLeaderboard.sort((a, b) => b.score - a.score);
+            
+            // Update top 3 display
+            if (filteredLeaderboard.length > 0) {
+                document.getElementById('firstName').textContent = filteredLeaderboard[0]?.name || '-';
+                document.getElementById('firstScore').textContent = filteredLeaderboard[0]?.score || '-';
+                
+                if (filteredLeaderboard.length > 1) {
+                    document.getElementById('secondName').textContent = filteredLeaderboard[1]?.name || '-';
+                    document.getElementById('secondScore').textContent = filteredLeaderboard[1]?.score || '-';
+                } else {
+                    document.getElementById('secondName').textContent = '-';
+                    document.getElementById('secondScore').textContent = '-';
+                }
+                
+                if (filteredLeaderboard.length > 2) {
+                    document.getElementById('thirdName').textContent = filteredLeaderboard[2]?.name || '-';
+                    document.getElementById('thirdScore').textContent = filteredLeaderboard[2]?.score || '-';
+                } else {
+                    document.getElementById('thirdName').textContent = '-';
+                    document.getElementById('thirdScore').textContent = '-';
+                }
+            } else {
+                document.getElementById('firstName').textContent = '-';
+                document.getElementById('firstScore').textContent = '-';
+                document.getElementById('secondName').textContent = '-';
+                document.getElementById('secondScore').textContent = '-';
+                document.getElementById('thirdName').textContent = '-';
+                document.getElementById('thirdScore').textContent = '-';
+            }
+            
+            leaderboardEntries.innerHTML = '';
+            
+            if (filteredLeaderboard.length === 0) {
+                noDataMessage.classList.remove('hidden');
+            } else {
+                noDataMessage.classList.add('hidden');
+                
+                // Start from index 3 since top 3 are displayed separately
+                filteredLeaderboard.slice(3, 10).forEach((entry, index) => {
+                    const entryElement = document.createElement('div');
+                    entryElement.className = 'clay-effect p-3 flex items-center';
+                    
+                    entryElement.innerHTML = `
+                        <div class="text-lg font-bold mr-3 w-8 text-center">${index + 4}</div>
+                        <div class="flex-1">
+                            <div class="font-medium">${entry.name}</div>
+                            <div class="text-sm text-gray-600">${entry.difficulty} • ${entry.correctAnswers}/${entry.totalQuestions} correct</div>
+                        </div>
+                        <div class="text-xl font-bold">${entry.score}</div>
+                    `;
+                    
+                    leaderboardEntries.appendChild(entryElement);
+                });
+            }
+            
+            showPage('leaderboardPage');
+        }
+
+        // Initialize app
+        checkLoggedInUser();
+    </script>
+<script>document.body.addEventListener('wheel', e => { if (!e.ctrlKey) return; e.preventDefault(); return }, { passive: false })</script>
+	</body>
+</html>
